@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
+import { Meteor } from 'meteor/meteor';
 import { createContainer } from 'meteor/react-meteor-data';
 
 import { Tasks } from '../api/tasks.js';
@@ -26,6 +27,8 @@ handleSubmit(event) {
     Tasks.insert({
       text,
       createdAt: new Date(), // current time
+      owner: Meteor.userId(),           // _id of logged in user
+      username: Meteor.user().username,  // username of logged in user
     });
 
     // Clear form
@@ -65,13 +68,15 @@ handleSubmit(event) {
 
           <AccountsUIWrapper />
 
-            <form className="new-task" onSubmit={this.handleSubmit.bind(this)} >
+          { this.props.currentUser ?
+          <form className="new-task" onSubmit={this.handleSubmit.bind(this)} >
             <input
               type="text"
               ref="textInput"
               placeholder="Type to add new tasks"
             />
-          </form>
+          </form> : ''
+        }
           </header>
 
           <ul>
@@ -90,5 +95,6 @@ export default createContainer(() => {
   return {
   tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch(),
   incompleteCount: Tasks.find({ checked: { $ne: true } }).count(),
+  currentUser: Meteor.user(),
   };
 }, App);
